@@ -36,20 +36,27 @@ if ticker:
     if not stock_data.empty:
         st.subheader(f"Stock Data for {ticker}")
 
-        # Displaying the data table
+        # Displaying the data table in a cleaner format
         st.write("Stock Data Table", stock_data)
+
+        # Ensure 'Date' column is properly formatted
+        stock_data.reset_index(inplace=True)
+        stock_data['Date'] = pd.to_datetime(stock_data['Date'])  # Ensure 'Date' is in datetime format
 
         # Displaying selected metric with Altair for better customization
         if metric in stock_data.columns:
-            chart = alt.Chart(stock_data.reset_index()).mark_line(color='green').encode(
-                x='Date:T',
-                y=f'{metric}:Q',
-                tooltip=['Date', metric]
+            st.write(f"### {metric} Price Over Time")
+
+            # Altair chart
+            chart = alt.Chart(stock_data).mark_line(color='green').encode(
+                x=alt.X('Date:T', title='Date'),
+                y=alt.Y(f'{metric}:Q', title=metric),
+                tooltip=[alt.Tooltip('Date:T'), alt.Tooltip(f'{metric}:Q')]
             ).interactive()
 
             st.altair_chart(chart, use_container_width=True)
         else:
-            st.error(f"Selected metric '{metric}' not available in the data.")
+            st.error(f"Selected metric '{metric}' is not available in the data.")
         
         # Download button for CSV
         csv_buffer = download_stock_report(stock_data, ticker)
